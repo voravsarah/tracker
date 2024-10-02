@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Money Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+      <h1 class="title">Money Tracker</h1>
+      
+      <!-- Input fields for amount and reason -->
+      <label>Enter amount:</label>
+      <input id="amt" type="number">
+      <br><br>
+      
+      <label>Enter reason:</label>
+      <input id="reason" type="text" placeholder="Reason for transaction">
+      <br><br>
+      
+      <!-- Buttons for actions -->
+      <button id="addButton">Deposit</button>
+      <button id="subtraction">Withdraw</button>
+      <button id="cash">Cash Out</button>
+      <button id="clear">Clear All</button>
+      
+      <!-- Current balance and summary information -->
+      <p id="result">Current balance in bank: $24</p>
+      <p id="withdrawn">Amount withdrawn from bank: -$543</p>
+      <p id="cashedOut">Amount cashed out: $340</p>
+
+      <!-- History log section -->
+      <h2>Transaction History</h2>
+      <ul id="historyLog"></ul>
+      
+      <script>
+        // Starting values
+        let currentBalance = 24;   // Starting balance
+        let totalWithdrawn = 543;  // Starting withdrawn amount
+        let totalCashedOut = 340;  // Starting cashed-out amount
+        let transactionHistory = [];  // Transaction history
+
+        const addButton = document.getElementById('addButton');
+        const subtraction = document.getElementById('subtraction');
+        const cash = document.getElementById('cash');
+        const clear = document.getElementById('clear');
+        const historyLog = document.getElementById('historyLog');
+
+        // Helper function to update the history log with the reason
+        function addToHistory(action, amount, reason) {
+          const listItem = document.createElement('li');
+          listItem.textContent = `${action}: $${amount} (Reason: ${reason})`;
+          transactionHistory.push(listItem.textContent);
+          historyLog.appendChild(listItem);  // Add the transaction to the log
+        }
+
+        // Function to update displayed values for current balance, withdrawals, and cash-outs
+        function updateDisplay() {
+          document.getElementById('result').innerText = "Current balance: $" + currentBalance;
+          document.getElementById('withdrawn').innerText = "Amount withdrawn: -$" + totalWithdrawn;
+          document.getElementById('cashedOut').innerText = "Amount cashed out: $" + totalCashedOut;
+
+          // Update history log
+          historyLog.innerHTML = '';  // Clear current history log
+          transactionHistory.forEach(entry => {
+            const listItem = document.createElement('li');
+            listItem.textContent = entry;
+            historyLog.appendChild(listItem);
+          });
+        }
+
+        // Deposit button functionality
+        addButton.addEventListener('click', function() {
+          const amt = parseFloat(document.getElementById('amt').value) || 0;
+          const reason = document.getElementById('reason').value || "No reason provided";
+          currentBalance += amt;  // Update the current balance by adding the amount
+          addToHistory('Deposited', amt, reason);  // Add to history log with reason
+          updateDisplay();  // Update the display with the new values
+        });
+
+        // Withdraw button functionality
+        subtraction.addEventListener('click', function() {
+          const amt = parseFloat(document.getElementById('amt').value) || 0;
+          const reason = document.getElementById('reason').value || "No reason provided";
+          currentBalance -= amt;  // Update the current balance by subtracting the amount
+          totalWithdrawn += amt;  // Add to total withdrawn amount
+          addToHistory('Withdrew', -amt, reason);  // Add negative sign and reason to history log
+          updateDisplay();  // Update the display with the new values
+        });
+
+        // Cash Out button functionality
+        cash.addEventListener('click', function() {
+          const cashedOut = currentBalance;  // Cash out the entire current balance
+          const reason = document.getElementById('reason').value || "No reason provided";
+          totalCashedOut += cashedOut;  // Add to total cashed out amount
+          currentBalance = 0;  // Reset the balance to 0 after cash out
+          addToHistory('Cashed Out', cashedOut, reason);  // Add to history log with reason
+          updateDisplay();  // Update the display with the new values
+        });
+
+        // Clear All button functionality
+        clear.addEventListener('click', function() {
+          // Reset all values to 0
+          currentBalance = 0;
+          totalWithdrawn = 0;
+          totalCashedOut = 0;
+          transactionHistory = [];
+
+          updateDisplay();  // Reset displayed values
+        });
+
+        // Initialize the display with starting values on page load
+        updateDisplay();
+      </script>
+  </body>
