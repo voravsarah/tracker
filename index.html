@@ -32,11 +32,11 @@
       <ul id="historyLog"></ul>
       
       <script>
-        // Starting values
-        let currentBalance = 24;   // Starting balance
-        let totalWithdrawn = 543;  // Starting withdrawn amount
-        let totalCashedOut = 340;  // Starting cashed-out amount
-        let transactionHistory = [];  // Transaction history
+        // Load stored data from localStorage, or set default starting values
+        let currentBalance = parseFloat(localStorage.getItem('currentBalance')) || 24;
+        let totalWithdrawn = parseFloat(localStorage.getItem('totalWithdrawn')) || 543;
+        let totalCashedOut = parseFloat(localStorage.getItem('totalCashedOut')) || 340;
+        let transactionHistory = JSON.parse(localStorage.getItem('transactionHistory')) || [];
 
         const addButton = document.getElementById('addButton');
         const subtraction = document.getElementById('subtraction');
@@ -50,11 +50,14 @@
           listItem.textContent = `${action}: $${amount} (Reason: ${reason})`;
           transactionHistory.push(listItem.textContent);
           historyLog.appendChild(listItem);  // Add the transaction to the log
+
+          // Store the updated transaction history in localStorage
+          localStorage.setItem('transactionHistory', JSON.stringify(transactionHistory));
         }
 
         // Function to update displayed values for current balance, withdrawals, and cash-outs
         function updateDisplay() {
-          document.getElementById('result').innerText = "Current balance: $" + currentBalance;
+          document.getElementById('result').innerText = "Current balance in bank: $" + currentBalance;
           document.getElementById('withdrawn').innerText = "Amount withdrawn: -$" + totalWithdrawn;
           document.getElementById('cashedOut').innerText = "Amount cashed out: $" + totalCashedOut;
 
@@ -73,6 +76,9 @@
           const reason = document.getElementById('reason').value || "No reason provided";
           currentBalance += amt;  // Update the current balance by adding the amount
           addToHistory('Deposited', amt, reason);  // Add to history log with reason
+
+          // Store the updated values in localStorage
+          localStorage.setItem('currentBalance', currentBalance);
           updateDisplay();  // Update the display with the new values
         });
 
@@ -83,6 +89,10 @@
           currentBalance -= amt;  // Update the current balance by subtracting the amount
           totalWithdrawn += amt;  // Add to total withdrawn amount
           addToHistory('Withdrew', -amt, reason);  // Add negative sign and reason to history log
+
+          // Store the updated values in localStorage
+          localStorage.setItem('currentBalance', currentBalance);
+          localStorage.setItem('totalWithdrawn', totalWithdrawn);
           updateDisplay();  // Update the display with the new values
         });
 
@@ -93,6 +103,10 @@
           totalCashedOut += cashedOut;  // Add to total cashed out amount
           currentBalance = 0;  // Reset the balance to 0 after cash out
           addToHistory('Cashed Out', cashedOut, reason);  // Add to history log with reason
+
+          // Store the updated values in localStorage
+          localStorage.setItem('currentBalance', currentBalance);
+          localStorage.setItem('totalCashedOut', totalCashedOut);
           updateDisplay();  // Update the display with the new values
         });
 
@@ -104,6 +118,9 @@
           totalCashedOut = 0;
           transactionHistory = [];
 
+          // Clear the localStorage
+          localStorage.clear();
+
           updateDisplay();  // Reset displayed values
         });
 
@@ -111,3 +128,5 @@
         updateDisplay();
       </script>
   </body>
+</html>
+
