@@ -20,7 +20,8 @@
     <button id="addButton">Deposit</button>
     <button id="subtraction">Withdraw</button>
     <button id="cash">Cash Out</button>
-    <button id="cashGiven">Cash Given</button>
+    <button id="cashWithdrawn">Cash Withdrawn</button>
+    <button id="cashGiven">Cash Given</button> <!-- New button -->
     <button id="clear">Clear All</button>
 
     <!-- Current balance and summary information -->
@@ -42,7 +43,8 @@
       const addButton = document.getElementById('addButton');
       const subtraction = document.getElementById('subtraction');
       const cash = document.getElementById('cash');
-      const cashGiven = document.getElementById('cashGiven');
+      const cashWithdrawn = document.getElementById('cashWithdrawn');
+      const cashGiven = document.getElementById('cashGiven'); // New button reference
       const clear = document.getElementById('clear');
       const historyLog = document.getElementById('historyLog');
 
@@ -128,8 +130,8 @@
       cashGiven.addEventListener('click', function() {
         const amt = parseFloat(document.getElementById('amt').value) || 0;
         const reason = document.getElementById('reason').value || "No reason provided";
-        totalCashedOut -= amt;  // Subtract the given amount from total cashed out
-        addToHistory('Cash Given', -amt, reason);  // Add to history log with reason
+        totalCashedOut += amt;  // Add the given amount to total cashed out
+        addToHistory('Cash Given', amt, reason);  // Add to history log with reason
 
         // Store the updated values in localStorage
         localStorage.setItem('totalCashedOut', totalCashedOut);
