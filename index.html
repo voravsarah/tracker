@@ -1,10 +1,30 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <title>Money Tracker</title>
     <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
+    <style>
+        /* Custom dialog styles */
+        #customDialog {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .dialogContent {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
     <h1 class="title">Money Tracker</h1>
 
     <!-- Input fields for amount and reason -->
@@ -20,148 +40,182 @@
     <button id="addButton">Deposit</button>
     <button id="subtraction">Withdraw</button>
     <button id="cash">Cash Out</button>
-    <button id="cashWithdrawn">Cash Withdrawn</button>
-    <button id="cashGiven">Cash Given</button> <!-- New button -->
+    <button id="cashWithdrawn">Amount Withdrawn to Omaaje</button>
+    <button id="cashGiven">Cash Given to Me</button>
     <button id="clear">Clear All</button>
 
     <!-- Current balance and summary information -->
     <p id="result">Current balance in bank: $24</p>
     <p id="withdrawn">Amount withdrawn from bank: -$543</p>
     <p id="cashedOut">Amount cashed out: $340</p>
+    <p id="amountGivenToOmaaje">Total amount withdrawn/given to Omaaje: $0</p> <!-- Display total given to Omaaje -->
 
     <!-- History log section -->
     <h2>Transaction History</h2>
     <ul id="historyLog"></ul>
 
+    <!-- Custom confirmation dialog -->
+    <div id="customDialog">
+        <div class="dialogContent">
+            <p>Would you like to withdraw from the bank balance?</p>
+            <button id="btnCash">Bank</button>
+            <button id="btnBank">Cash</button>
+            <button id="btnClose">Close</button>
+        </div>
+    </div>
+
     <script>
-      // Load stored data from localStorage, or set default starting values
-      let currentBalance = parseFloat(localStorage.getItem('currentBalance')) || 24;
-      let totalWithdrawn = parseFloat(localStorage.getItem('totalWithdrawn')) || 543;
-      let totalCashedOut = parseFloat(localStorage.getItem('totalCashedOut')) || 340;
-      let transactionHistory = JSON.parse(localStorage.getItem('transactionHistory')) || [];
+        // Load stored data from localStorage, or set default starting values
+        let currentBalance = parseFloat(localStorage.getItem('currentBalance')) || 24;
+        let totalWithdrawn = parseFloat(localStorage.getItem('totalWithdrawn')) || 543;
+        let totalCashedOut = parseFloat(localStorage.getItem('totalCashedOut')) || 340;
+        let totalAmountGivenToOmaaje = parseFloat(localStorage.getItem('totalAmountGivenToOmaaje')) || 0;
+        let transactionHistory = JSON.parse(localStorage.getItem('transactionHistory')) || [];
 
-      const addButton = document.getElementById('addButton');
-      const subtraction = document.getElementById('subtraction');
-      const cash = document.getElementById('cash');
-      const cashWithdrawn = document.getElementById('cashWithdrawn');
-      const cashGiven = document.getElementById('cashGiven'); // New button reference
-      const clear = document.getElementById('clear');
-      const historyLog = document.getElementById('historyLog');
+        const addButton = document.getElementById('addButton');
+        const subtraction = document.getElementById('subtraction');
+        const cash = document.getElementById('cash');
+        const cashWithdrawn = document.getElementById('cashWithdrawn');
+        const cashGiven = document.getElementById('cashGiven');
+        const clear = document.getElementById('clear');
+        const historyLog = document.getElementById('historyLog');
 
-      // Helper function to update the history log with the reason
-      function addToHistory(action, amount, reason) {
-        const listItem = document.createElement('li');
-        listItem.textContent = `${action}: $${amount} (Reason: ${reason})`;
-        transactionHistory.push(listItem.textContent);
-        historyLog.appendChild(listItem);  // Add the transaction to the log
+        // Helper function to update the history log with the reason
+        function addToHistory(action, amount, reason) {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${action}: $${amount} (Reason: ${reason})`;
+            transactionHistory.push(listItem.textContent);
+            historyLog.appendChild(listItem);  // Add the transaction to the log
+            localStorage.setItem('transactionHistory', JSON.stringify(transactionHistory));
+        }
 
-        // Store the updated transaction history in localStorage
-        localStorage.setItem('transactionHistory', JSON.stringify(transactionHistory));
-      }
+        // Function to update displayed values for current balance, withdrawals, and cash-outs
+        function updateDisplay() {
+            document.getElementById('result').innerText = "Current balance in bank: $" + currentBalance;
+            document.getElementById('withdrawn').innerText = "Amount withdrawn: -$" + totalWithdrawn;
+            document.getElementById('cashedOut').innerText = "Amount cashed out: $" + totalCashedOut;
+            document.getElementById('amountGivenToOmaaje').innerText = "Total amount withdrawn/given to Omaaje: $" + totalAmountGivenToOmaaje;
 
-      // Function to update displayed values for current balance, withdrawals, and cash-outs
-      function updateDisplay() {
-        document.getElementById('result').innerText = "Current balance in bank: $" + currentBalance;
-        document.getElementById('withdrawn').innerText = "Amount withdrawn: -$" + totalWithdrawn;
-        document.getElementById('cashedOut').innerText = "Amount cashed out: $" + totalCashedOut;
+            // Update history log
+            historyLog.innerHTML = '';  // Clear current history log
+            transactionHistory.forEach(entry => {
+                const listItem = document.createElement('li');
+                listItem.textContent = entry;
+                historyLog.appendChild(listItem);
+            });
+        }
 
-        // Update history log
-        historyLog.innerHTML = '';  // Clear current history log
-        transactionHistory.forEach(entry => {
-          const listItem = document.createElement('li');
-          listItem.textContent = entry;
-          historyLog.appendChild(listItem);
+        // Deposit button functionality
+        addButton.addEventListener('click', function() {
+            const amt = parseFloat(document.getElementById('amt').value) || 0;
+            const reason = document.getElementById('reason').value || "No reason provided";
+            currentBalance += amt;
+            addToHistory('Deposited', amt, reason);
+            localStorage.setItem('currentBalance', currentBalance);
+            updateDisplay();
+            document.getElementById('amt').value = '';
+            document.getElementById('reason').value = '';
         });
-      }
 
-      // Deposit button functionality
-      addButton.addEventListener('click', function() {
-        const amt = parseFloat(document.getElementById('amt').value) || 0;
-        const reason = document.getElementById('reason').value || "No reason provided";
-        currentBalance += amt;  // Update the current balance by adding the amount
-        addToHistory('Deposited', amt, reason);  // Add to history log with reason
+        // Withdraw button functionality
+        subtraction.addEventListener('click', function() {
+            const amt = parseFloat(document.getElementById('amt').value) || 0;
+            const reason = document.getElementById('reason').value || "No reason provided";
+            currentBalance -= amt;
+            totalWithdrawn += amt;
+            addToHistory('Withdrew', -amt, reason);
+            localStorage.setItem('currentBalance', currentBalance);
+            localStorage.setItem('totalWithdrawn', totalWithdrawn);
+            updateDisplay();
+            document.getElementById('amt').value = '';
+            document.getElementById('reason').value = '';
+        });
 
-        // Store the updated values in localStorage
-        localStorage.setItem('currentBalance', currentBalance);
-        updateDisplay();  // Update the display with the new values
-        
-        // Clear the input fields after the transaction
-        document.getElementById('amt').value = '';
-        document.getElementById('reason').value = '';
-      });
+        // Cash Out button functionality
+        cash.addEventListener('click', function() {
+            const amt = parseFloat(document.getElementById('amt').value) || 0;
+            const reason = document.getElementById('reason').value || "No reason provided";
+            if (amt <= currentBalance) {
+                currentBalance -= amt;
+                totalCashedOut += amt;
+                addToHistory('Cashed Out', amt, reason);
+                localStorage.setItem('currentBalance', currentBalance);
+                localStorage.setItem('totalCashedOut', totalCashedOut);
+                updateDisplay();
+            } else {
+                alert("Insufficient funds in the bank balance.");
+            }
+            document.getElementById('amt').value = '';
+            document.getElementById('reason').value = '';
+        });
 
-      // Withdraw button functionality
-      subtraction.addEventListener('click', function() {
-        const amt = parseFloat(document.getElementById('amt').value) || 0;
-        const reason = document.getElementById('reason').value || "No reason provided";
-        currentBalance -= amt;  // Update the current balance by subtracting the amount
-        totalWithdrawn += amt;  // Add to total withdrawn amount
-        addToHistory('Withdrew', -amt, reason);  // Add negative sign and reason to history log
+        // Cash Given button functionality
+        cashGiven.addEventListener('click', function() {
+            const amt = parseFloat(document.getElementById('amt').value) || 0;
+            const reason = document.getElementById('reason').value || "No reason provided";
+            totalCashedOut += amt;
+            addToHistory('Cash Given to Me', amt, reason);
+            localStorage.setItem('totalCashedOut', totalCashedOut);
+            updateDisplay();
+            document.getElementById('amt').value = '';
+            document.getElementById('reason').value = '';
+        });
 
-        // Store the updated values in localStorage
-        localStorage.setItem('currentBalance', currentBalance);
-        localStorage.setItem('totalWithdrawn', totalWithdrawn);
-        updateDisplay();  // Update the display with the new values
+        // Amount Withdrawn to Omaaje button functionality
+        cashWithdrawn.addEventListener('click', function() {
+            const amt = parseFloat(document.getElementById('amt').value) || 0;
+            const reason = document.getElementById('reason').value || "No reason provided";
+            if (amt > 0) {
+                document.getElementById('customDialog').style.display = 'flex'; // Show custom dialog
+                document.getElementById('btnCash').onclick = function() {
+                    if (amt <= currentBalance) {
+                        currentBalance -= amt;
+                        totalAmountGivenToOmaaje += amt;
+                        addToHistory('Amount Withdrawn to Omaaje (from Bank)', amt, reason);
+                        localStorage.setItem('currentBalance', currentBalance);
+                        localStorage.setItem('totalAmountGivenToOmaaje', totalAmountGivenToOmaaje);
+                        updateDisplay();
+                    } else {
+                        alert("Insufficient funds in the bank balance.");
+                    }
+                    document.getElementById('customDialog').style.display = 'none'; // Close dialog
+                };
+                document.getElementById('btnBank').onclick = function() {
+                    if (amt <= totalCashedOut) {
+                        totalCashedOut -= amt;
+                        totalAmountGivenToOmaaje += amt;
+                        addToHistory('Amount Withdrawn to Omaaje (from Cash)', amt, reason);
+                        localStorage.setItem('totalCashedOut', totalCashedOut);
+                        localStorage.setItem('totalAmountGivenToOmaaje', totalAmountGivenToOmaaje);
+                        updateDisplay();
+                    } else {
+                        alert("Insufficient funds in the cash balance.");
+                    }
+                    document.getElementById('customDialog').style.display = 'none'; // Close dialog
+                };
+                document.getElementById('btnClose').onclick = function() {
+                    document.getElementById('customDialog').style.display = 'none'; // Close dialog
+                };
+            } else {
+                alert("Please enter a valid amount.");
+            }
+            document.getElementById('amt').value = '';
+            document.getElementById('reason').value = '';
+        });
 
-        // Clear the input fields after the transaction
-        document.getElementById('amt').value = '';
-        document.getElementById('reason').value = '';
-      });
+        // Clear button functionality
+        clear.addEventListener('click', function() {
+            currentBalance = 24;
+            totalWithdrawn = 543;
+            totalCashedOut = 340;
+            totalAmountGivenToOmaaje = 0;
+            transactionHistory = [];
+            localStorage.clear();
+            updateDisplay();
+        });
 
-      // Cash Out button functionality
-      cash.addEventListener('click', function() {
-        const cashedOut = currentBalance;  // Cash out the entire current balance
-        const reason = document.getElementById('reason').value || "No reason provided";
-        totalCashedOut += cashedOut;  // Add to total cashed out amount
-        currentBalance = 0;  // Reset the balance to 0 after cash out
-        addToHistory('Cashed Out', cashedOut, reason);  // Add to history log with reason
-
-        // Store the updated values in localStorage
-        localStorage.setItem('currentBalance', currentBalance);
-        localStorage.setItem('totalCashedOut', totalCashedOut);
-        updateDisplay();  // Update the display with the new values
-
-        // Clear the input fields after the transaction
-        document.getElementById('amt').value = '';
-        document.getElementById('reason').value = '';
-      });
-
-      // Cash Given button functionality
-      cashGiven.addEventListener('click', function() {
-        const amt = parseFloat(document.getElementById('amt').value) || 0;
-        const reason = document.getElementById('reason').value || "No reason provided";
-        totalCashedOut += amt;  // Add the given amount to total cashed out
-        addToHistory('Cash Given', amt, reason);  // Add to history log with reason
-
-        // Store the updated values in localStorage
-        localStorage.setItem('totalCashedOut', totalCashedOut);
-        updateDisplay();  // Update the display with the new values
-
-        // Clear the input fields after the transaction
-        document.getElementById('amt').value = '';
-        document.getElementById('reason').value = '';
-      });
-
-      // Clear All button functionality
-      clear.addEventListener('click', function() {
-        // Reset all values to 0
-        currentBalance = 0;
-        totalWithdrawn = 0;
-        totalCashedOut = 0;
-        transactionHistory = [];
-
-        // Clear the localStorage
-        localStorage.clear();
-
-        updateDisplay();  // Reset displayed values
-
-        // Clear the input fields after the transaction
-        document.getElementById('amt').value = '';
-        document.getElementById('reason').value = '';
-      });
-
-      // Initialize the display with starting values on page load
-      updateDisplay();
+        // Initial display update
+        updateDisplay();
     </script>
-  </body>
+</body>
 </html>
