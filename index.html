@@ -203,16 +203,23 @@
             document.getElementById('reason').value = '';
         });
 
-        // Clear button functionality
         clear.addEventListener('click', function() {
             currentBalance = 0;
             totalWithdrawn = 0;
             totalCashedOut = 0;
             totalAmountGivenToOmaaje = 0;
             transactionHistory = [];
-            localStorage.clear();
-            updateDisplay();
-        });
+            
+            // Update the UI and store values in localStorage
+            localStorage.setItem('currentBalance', currentBalance);
+            localStorage.setItem('totalWithdrawn', totalWithdrawn);
+            localStorage.setItem('totalCashedOut', totalCashedOut);
+            localStorage.setItem('totalAmountGivenToOmaaje', totalAmountGivenToOmaaje);
+            localStorage.setItem('transactionHistory', JSON.stringify(transactionHistory));
+
+    updateDisplay();
+});
+
 
         // Initial display update
         updateDisplay();
