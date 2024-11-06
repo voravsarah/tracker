@@ -66,9 +66,9 @@
 
     <script>
         // Load stored data from localStorage, or set default starting values
-        let currentBalance = parseFloat(localStorage.getItem('currentBalance')) || 24;
-        let totalWithdrawn = parseFloat(localStorage.getItem('totalWithdrawn')) || 543;
-        let totalCashedOut = parseFloat(localStorage.getItem('totalCashedOut')) || 340;
+        let currentBalance = parseFloat(localStorage.getItem('currentBalance')) || 0;
+        let totalWithdrawn = parseFloat(localStorage.getItem('totalWithdrawn')) || 0;
+        let totalCashedOut = parseFloat(localStorage.getItem('totalCashedOut')) || 0;
         let totalAmountGivenToOmaaje = parseFloat(localStorage.getItem('totalAmountGivenToOmaaje')) || 0;
         let transactionHistory = JSON.parse(localStorage.getItem('transactionHistory')) || [];
 
